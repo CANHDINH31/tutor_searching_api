@@ -11,6 +11,7 @@ import pino from 'pino';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { SubjectsModule } from './subjects/subjects.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SubjectsModule } from './subjects/subjects.module';
     AuthModule,
     UsersModule,
     SubjectsModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],
