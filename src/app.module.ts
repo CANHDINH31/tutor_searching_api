@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import pino from 'pino';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
+import { SubjectsModule } from './subjects/subjects.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     UsersModule,
+    SubjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService],
