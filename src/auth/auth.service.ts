@@ -12,12 +12,8 @@ export class AuthService {
         email: registerDto.email,
         username: registerDto.username,
       });
-      if (existAccount?.length > 0) {
-        return {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Email hoặc Username đã tồn tại',
-        };
-      }
+      if (existAccount?.length > 0)
+        throw new Error('Email hoặc Username đã tồn tại');
       return await this.userService.create(registerDto);
     } catch (error) {
       throw error;
