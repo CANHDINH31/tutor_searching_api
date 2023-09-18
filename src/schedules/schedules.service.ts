@@ -1,11 +1,42 @@
-import { Injectable } from '@nestjs/common';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { CreateScheduleByTutorDto } from './dto/create-schedule-by-tutor.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Schedule } from 'src/schemas/schedules.schema';
 
 @Injectable()
 export class SchedulesService {
-  create(createScheduleDto: CreateScheduleDto) {
-    return 'This action adds a new schedule';
+  constructor(
+    @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
+  ) {}
+  async createByTutor(createScheduleByTutorDto: CreateScheduleByTutorDto) {
+    try {
+      const data = await this.scheduleModal.create({
+        ...createScheduleByTutorDto,
+      });
+      return {
+        status: HttpStatus.OK,
+        message: 'Đăng kí lớp thành công',
+        data,
+      };
+    } catch (error) {}
+  }
+
+  async findTutor() {
+    try {
+      const data = await this.scheduleModal
+        .find({ is_accepted: false })
+        .populate({ path: 'tutor_id', select: '-password' })
+        .populate('subject_id');
+
+      return {
+        status: HttpStatus.OK,
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   findAll() {

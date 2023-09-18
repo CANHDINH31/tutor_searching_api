@@ -13,12 +13,14 @@ export class Schedule {
   subject_id: string;
   // 2: Monday 3: Tuesday 4: Wednesday 5:Thurday 6:Friday 7:Saturday 8:Sunday
   @Prop()
-  day: number;
+  day: number[];
   // 1: 7-8,5 2:7,5-9 3:...
   @Prop()
-  hour: number;
+  hour: number[];
   @Prop({ default: false })
   is_accepted: boolean;
+  @Prop()
+  price: number;
   @Prop()
   place: string;
 }
