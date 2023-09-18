@@ -21,7 +21,7 @@ export class User {
   @Prop({ default: 1 })
   role: number;
 
-  @Prop()
+  @Prop({ default: 0 })
   money: number;
 
   @Prop()

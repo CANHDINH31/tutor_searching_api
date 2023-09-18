@@ -29,19 +29,11 @@ export class AuthService {
       const existAccount = await this.userService.findByUsername(
         loginDto.username,
       );
-      if (!existAccount)
-        return {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Username không tồn tại',
-        };
+      if (!existAccount) throw new Error('Username không tồn tại');
 
       // Check Password
       const isCorrectPassword = loginDto.password === existAccount.password;
-      if (!isCorrectPassword)
-        return {
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Password chưa chính xác',
-        };
+      if (!isCorrectPassword) throw new Error('Username không tồn tại');
 
       return {
         status: HttpStatus.OK,
