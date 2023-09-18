@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -13,7 +13,9 @@ export class AuthService {
         username: registerDto.username,
       });
       if (existAccount?.length > 0)
-        throw new Error('Email hoặc Username đã tồn tại');
+        throw new BadRequestException({
+          message: 'Email hoặc Username đã tồn tại',
+        });
       return await this.userService.create(registerDto);
     } catch (error) {
       throw error;
@@ -25,11 +27,13 @@ export class AuthService {
       const existAccount = await this.userService.findByUsername(
         loginDto.username,
       );
-      if (!existAccount) throw new Error('Username không tồn tại');
+      if (!existAccount)
+        throw new BadRequestException({ message: 'Username không tồn tại' });
 
       // Check Password
       const isCorrectPassword = loginDto.password === existAccount.password;
-      if (!isCorrectPassword) throw new Error('Mật khẩu chưa chính xác');
+      if (!isCorrectPassword)
+        throw new BadRequestException({ message: 'Mật khẩu chưa chính xác' });
 
       return {
         status: HttpStatus.OK,
