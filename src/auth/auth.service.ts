@@ -29,7 +29,7 @@ export class AuthService {
 
       // Check Password
       const isCorrectPassword = loginDto.password === existAccount.password;
-      if (!isCorrectPassword) throw new Error('Username không tồn tại');
+      if (!isCorrectPassword) throw new Error('Mật khẩu chưa chính xác');
 
       return {
         status: HttpStatus.OK,
