@@ -19,6 +19,9 @@ export class Schedule {
   hour: number[];
   @Prop({ default: false })
   is_accepted: boolean;
+  // 1.Student   2.Tutor
+  @Prop()
+  type: number;
   @Prop()
   price: number;
   @Prop()

@@ -47,8 +47,10 @@ export class UsersService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    try {
+      return await this.userModal.findById(id);
+    } catch (error) {}
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
