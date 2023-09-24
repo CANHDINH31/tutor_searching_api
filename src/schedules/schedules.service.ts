@@ -9,6 +9,7 @@ import { UsersService } from 'src/users/users.service';
 import { FindScheduleDto } from './dto/find-schedule-dto';
 import { AcceptTutor } from './dto/accept-tutor';
 import { AcceptStudent } from './dto/accept-student';
+import { MyScheduleDto } from './dto/my-schedule';
 
 @Injectable()
 export class SchedulesService {
@@ -298,10 +299,6 @@ export class SchedulesService {
     }
   }
 
-  findAll() {
-    return `This action returns all schedules`;
-  }
-
   async findOne(_id: string) {
     try {
       return await this.scheduleModal.findOne({ _id });
@@ -310,8 +307,33 @@ export class SchedulesService {
     }
   }
 
-  update(id: number, updateScheduleDto: UpdateScheduleDto) {
-    return `This action updates a #${id} schedule`;
+  async mySchedule(myScheduleDto: MyScheduleDto) {
+    try {
+      const user = await this.userService.findOne(myScheduleDto._id);
+      if (!user)
+        throw new BadRequestException({
+          message: 'Không tồn tại người dùng',
+        });
+      let data;
+      if (user.role === 1) {
+        data = await this.scheduleModal.find({
+          student_id: user._id,
+          is_accepted: true,
+        });
+      } else {
+        data = await this.scheduleModal.find({
+          tutor_id: user._id,
+          is_accepted: true,
+        });
+      }
+
+      return {
+        status: HttpStatus.OK,
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   remove(id: number) {

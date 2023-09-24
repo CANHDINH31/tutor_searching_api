@@ -14,6 +14,7 @@ import { CreateScheduleByStudentDto } from './dto/create-schedule-by-student.dto
 import { FindScheduleDto } from './dto/find-schedule-dto';
 import { AcceptTutor } from './dto/accept-tutor';
 import { AcceptStudent } from './dto/accept-student';
+import { MyScheduleDto } from './dto/my-schedule';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -36,6 +37,11 @@ export class SchedulesController {
     return this.schedulesService.findTutor(findScheduleDto);
   }
 
+  @Post('/my-schedule')
+  mySchedule(@Body() myScheduleDto: MyScheduleDto) {
+    return this.schedulesService.mySchedule(myScheduleDto);
+  }
+
   @Post('/find-student')
   findStudent(@Body() findScheduleDto: FindScheduleDto) {
     return this.schedulesService.findStudent(findScheduleDto);
@@ -51,22 +57,9 @@ export class SchedulesController {
     return this.schedulesService.acceptStudent(acceptStudent);
   }
 
-  @Get()
-  findAll() {
-    return this.schedulesService.findAll();
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.schedulesService.findOne(id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateScheduleDto: UpdateScheduleDto,
-  ) {
-    return this.schedulesService.update(+id, updateScheduleDto);
   }
 
   @Delete(':id')
