@@ -10,12 +10,7 @@ export class CreateScheduleByTutorDto {
   subject_id: string;
 
   @ArrayNotEmpty()
-  @IsNumber({}, { each: true })
-  day: number[];
-
-  @ArrayNotEmpty()
-  @IsNumber({}, { each: true })
-  hour: number[];
+  time: string[];
 
   @IsNotEmpty()
   @IsNumber()

@@ -12,11 +12,9 @@ export class Schedule {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' })
   subject_id: string;
   // 2: Monday 3: Tuesday 4: Wednesday 5:Thurday 6:Friday 7:Saturday 8:Sunday
-  @Prop()
-  day: number[];
   // 1: 7-8,5 2:7,5-9 3:...
   @Prop()
-  hour: number[];
+  time: string[];
   @Prop({ default: false })
   is_accepted: boolean;
   // 1.Student   2.Tutor

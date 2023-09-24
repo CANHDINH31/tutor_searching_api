@@ -20,29 +20,29 @@ export class SchedulesService {
       );
       if (!checkedExistTutor)
         throw new BadRequestException({ message: 'Bạn không phải là gia sư' });
-      return await this.scheduleModal
+
+      const existedClass = await this.scheduleModal
         .findOne({
-          $or: [
-            {
-              day: { $in: createScheduleByTutorDto.day },
-              hour: { $in: createScheduleByTutorDto.hour },
-            },
-            {
-              day: { $in: createScheduleByTutorDto.day },
-              hour: { $elemMatch: { $in: createScheduleByTutorDto.hour } },
-            },
-          ],
+          tutor_id: createScheduleByTutorDto.tutor_id,
+          time: { $in: createScheduleByTutorDto.time },
         })
         .populate('subject_id');
-      // const data = await this.scheduleModal.create({
-      //   ...createScheduleByTutorDto,
-      //   type: 2,
-      // });
-      // return {
-      //   status: HttpStatus.OK,
-      //   message: 'Đăng kí lớp thành công',
-      //   data,
-      // };
+
+      if (existedClass)
+        throw new BadRequestException({
+          message: `Bạn đã đăng kí lớp vào khung giờ này`,
+          data: existedClass,
+        });
+
+      const data = await this.scheduleModal.create({
+        ...createScheduleByTutorDto,
+        type: 2,
+      });
+      return {
+        status: HttpStatus.OK,
+        message: 'Đăng kí lớp thành công',
+        data,
+      };
     } catch (error) {
       throw error;
     }
@@ -52,6 +52,27 @@ export class SchedulesService {
     createScheduleByStudentDto: CreateScheduleByStudentDto,
   ) {
     try {
+      const checkedExistStudent = await this.userService.findOne(
+        createScheduleByStudentDto.student_id,
+      );
+      if (!checkedExistStudent)
+        throw new BadRequestException({
+          message: 'Bạn không phải là học sinh',
+        });
+
+      const existedClass = await this.scheduleModal
+        .findOne({
+          student_id: createScheduleByStudentDto.student_id,
+          time: { $in: createScheduleByStudentDto.time },
+        })
+        .populate('subject_id');
+
+      if (existedClass)
+        throw new BadRequestException({
+          message: `Bạn đã đăng kí lớp vào khung giờ này`,
+          data: existedClass,
+        });
+
       const data = await this.scheduleModal.create({
         ...createScheduleByStudentDto,
         type: 1,
@@ -61,13 +82,19 @@ export class SchedulesService {
         message: 'Đăng kí lớp thành công',
         data,
       };
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findTutor() {
     try {
       const data = await this.scheduleModal
-        .find({ is_accepted: false, type: 2 })
+        .find({
+          is_accepted: false,
+          type: 2,
+          student_id: { $exists: false },
+        })
         .populate({ path: 'tutor_id', select: '-password' })
         .populate('subject_id');
 
@@ -83,7 +110,7 @@ export class SchedulesService {
   async findStudent() {
     try {
       const data = await this.scheduleModal
-        .find({ is_accepted: false, type: 1 })
+        .find({ is_accepted: false, type: 1, tutor_id: { $exists: false } })
         .populate({ path: 'student_id', select: '-password' })
         .populate('subject_id');
 
