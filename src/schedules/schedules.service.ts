@@ -21,6 +21,11 @@ export class SchedulesService {
       if (!checkedExistTutor)
         throw new BadRequestException({ message: 'Bạn không phải là gia sư' });
 
+      if (checkedExistTutor.money < createScheduleByTutorDto.price * 3)
+        throw new BadRequestException({
+          message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
+        });
+
       const existedClass = await this.scheduleModal
         .findOne({
           tutor_id: createScheduleByTutorDto.tutor_id,
@@ -38,6 +43,12 @@ export class SchedulesService {
         ...createScheduleByTutorDto,
         type: 2,
       });
+
+      await this.userService.cashMoney({
+        _id: createScheduleByTutorDto.tutor_id,
+        money: Number(createScheduleByTutorDto.price) * -3,
+      });
+
       return {
         status: HttpStatus.OK,
         message: 'Đăng kí lớp thành công',
@@ -60,6 +71,11 @@ export class SchedulesService {
           message: 'Bạn không phải là học sinh',
         });
 
+      if (checkedExistStudent.money < createScheduleByStudentDto.price * 3)
+        throw new BadRequestException({
+          message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
+        });
+
       const existedClass = await this.scheduleModal
         .findOne({
           student_id: createScheduleByStudentDto.student_id,
@@ -77,6 +93,12 @@ export class SchedulesService {
         ...createScheduleByStudentDto,
         type: 1,
       });
+
+      await this.userService.cashMoney({
+        _id: createScheduleByStudentDto.student_id,
+        money: Number(createScheduleByStudentDto.price) * -3,
+      });
+
       return {
         status: HttpStatus.OK,
         message: 'Đăng kí lớp thành công',
