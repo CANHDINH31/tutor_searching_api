@@ -1,5 +1,5 @@
+import { UsersModule } from './../users/users.module';
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { CreateScheduleByTutorDto } from './dto/create-schedule-by-tutor.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,6 +10,8 @@ import { FindScheduleDto } from './dto/find-schedule-dto';
 import { AcceptTutor } from './dto/accept-tutor';
 import { AcceptStudent } from './dto/accept-student';
 import { MyScheduleDto } from './dto/my-schedule';
+import { MyRegisterDto } from './dto/my-register';
+import { RemoveScheduleDto } from './dto/remove-schedule';
 
 @Injectable()
 export class SchedulesService {
@@ -336,8 +338,59 @@ export class SchedulesService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} schedule`;
+  async myRegister(myRegisterDto: MyRegisterDto) {
+    try {
+      const user = await this.userService.findOne(myRegisterDto._id);
+      if (!user)
+        throw new BadRequestException({
+          message: 'Không tồn tại người dùng',
+        });
+      let data;
+      if (user.role === 1) {
+        data = await this.scheduleModal.find({
+          student_id: user._id,
+          is_accepted: false,
+        });
+      } else {
+        data = await this.scheduleModal.find({
+          tutor_id: user._id,
+          is_accepted: false,
+        });
+      }
+
+      return {
+        status: HttpStatus.OK,
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async remove(removeScheduleDto: RemoveScheduleDto) {
+    try {
+      const schedule = await this.findOne(removeScheduleDto.schedule_id);
+      if (!schedule)
+        throw new BadRequestException({ message: 'Không có lịch trên' });
+      if (schedule.type === 1) {
+        await this.userService.cashMoney({
+          _id: schedule.student_id,
+          money: Number(schedule.price) * 3,
+        });
+      } else {
+        await this.userService.cashMoney({
+          _id: schedule.tutor_id,
+          money: Number(schedule.price) * 3,
+        });
+      }
+      await this.scheduleModal.findByIdAndRemove(removeScheduleDto.schedule_id);
+      return {
+        status: HttpStatus.ACCEPTED,
+        message: 'Đã xóa thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   convertToTimeArray(day: string[], hour: string[]) {

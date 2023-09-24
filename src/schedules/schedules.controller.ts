@@ -1,20 +1,13 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { CreateScheduleByTutorDto } from './dto/create-schedule-by-tutor.dto';
-import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { CreateScheduleByStudentDto } from './dto/create-schedule-by-student.dto';
 import { FindScheduleDto } from './dto/find-schedule-dto';
 import { AcceptTutor } from './dto/accept-tutor';
 import { AcceptStudent } from './dto/accept-student';
 import { MyScheduleDto } from './dto/my-schedule';
+import { MyRegisterDto } from './dto/my-register';
+import { RemoveScheduleDto } from './dto/remove-schedule';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -42,6 +35,11 @@ export class SchedulesController {
     return this.schedulesService.mySchedule(myScheduleDto);
   }
 
+  @Post('/my-register')
+  myRegister(@Body() myRegisterDto: MyRegisterDto) {
+    return this.schedulesService.myRegister(myRegisterDto);
+  }
+
   @Post('/find-student')
   findStudent(@Body() findScheduleDto: FindScheduleDto) {
     return this.schedulesService.findStudent(findScheduleDto);
@@ -62,8 +60,8 @@ export class SchedulesController {
     return this.schedulesService.findOne(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.schedulesService.remove(+id);
+  @Post('remove-schedule')
+  remove(@Body() removeScheduleDto: RemoveScheduleDto) {
+    return this.schedulesService.remove(removeScheduleDto);
   }
 }
