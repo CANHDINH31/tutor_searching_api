@@ -1,10 +1,12 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/users.schema';
 import { Model } from 'mongoose';
 import { FindUserByEmailAndUsernameDto } from './dto/find-user-by-email-and-username.dto';
+import { MoneyDto } from './dto/money-dto';
+import { PasswordDto } from './dto/password-dto';
 
 @Injectable()
 export class UsersService {
@@ -51,6 +53,47 @@ export class UsersService {
     try {
       return await this.userModal.findById(id);
     } catch (error) {}
+  }
+
+  async cashMoney(id: string, moneyDto: MoneyDto) {
+    try {
+      const data = await this.userModal.findByIdAndUpdate(
+        id,
+        { $inc: { money: moneyDto.money } },
+        { new: true },
+      );
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Nạp tiền thành công',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async changePassword(id: string, passwordDto: PasswordDto) {
+    try {
+      const existedAccount = await this.findOne(id);
+      if (!existedAccount) {
+        throw new BadRequestException({
+          message: 'Tài khoản của bạn không tồn tại',
+        });
+      }
+      if (existedAccount.password !== passwordDto.old_password)
+        throw new BadRequestException({
+          message: 'Mật khẩu cũ không chính xác',
+        });
+      await this.userModal.findByIdAndUpdate(id, {
+        password: passwordDto.new_password,
+      });
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Thay đổi mật khẩu thành công',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

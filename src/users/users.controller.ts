@@ -10,6 +10,8 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { MoneyDto } from './dto/money-dto';
+import { PasswordDto } from './dto/password-dto';
 
 @Controller('users')
 export class UsersController {
@@ -25,9 +27,14 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Patch('/cash/:id')
+  cashMoney(@Param('id') id: string, @Body() moneyDto: MoneyDto) {
+    return this.usersService.cashMoney(id, moneyDto);
+  }
+
+  @Patch('/change-password/:id')
+  changePassword(@Param('id') id: string, @Body() passwordDto: PasswordDto) {
+    return this.usersService.changePassword(id, passwordDto);
   }
 
   @Delete(':id')
