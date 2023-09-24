@@ -7,6 +7,8 @@ import { Schedule } from 'src/schemas/schedules.schema';
 import { CreateScheduleByStudentDto } from './dto/create-schedule-by-student.dto';
 import { UsersService } from 'src/users/users.service';
 import { FindScheduleDto } from './dto/find-schedule-dto';
+import { AcceptTutor } from './dto/accept-tutor';
+import { AcceptStudent } from './dto/accept-student';
 
 @Injectable()
 export class SchedulesService {
@@ -198,12 +200,114 @@ export class SchedulesService {
     }
   }
 
+  async acceptTutor(acceptTutor: AcceptTutor) {
+    try {
+      const checkedExistStudent = await this.userService.findOne(
+        acceptTutor.student_id,
+      );
+
+      const schedule = await this.findOne(acceptTutor.schedule_id);
+
+      if (!checkedExistStudent)
+        throw new BadRequestException({
+          message: 'Bạn không phải là học sinh',
+        });
+
+      if (checkedExistStudent.money < schedule.price * 3)
+        throw new BadRequestException({
+          message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
+        });
+
+      const existedClass = await this.scheduleModal
+        .findOne({
+          student_id: acceptTutor.student_id,
+          time: { $in: schedule.time },
+        })
+        .populate('subject_id');
+
+      if (existedClass)
+        throw new BadRequestException({
+          message: `Bạn đã đăng kí lớp vào khung giờ này`,
+          data: existedClass,
+        });
+
+      const data = await this.scheduleModal.findByIdAndUpdate(
+        acceptTutor.schedule_id,
+        { student_id: acceptTutor.student_id, is_accepted: true },
+        { new: true },
+      );
+
+      await this.userService.cashMoney({
+        _id: acceptTutor.student_id,
+        money: Number(schedule.price) * -3,
+      });
+
+      return {
+        status: HttpStatus.OK,
+        message: 'Bạn đã accept lớp này thành công',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async acceptStudent(acceptStudent: AcceptStudent) {
+    try {
+      const checkedExistTutor = await this.userService.findOne(
+        acceptStudent.tutor_id,
+      );
+      const schedule = await this.findOne(acceptStudent.schedule_id);
+      if (!checkedExistTutor)
+        throw new BadRequestException({
+          message: 'Bạn không phải là gia sư',
+        });
+      if (checkedExistTutor.money < schedule.price * 3)
+        throw new BadRequestException({
+          message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
+        });
+
+      const existedClass = await this.scheduleModal
+        .findOne({
+          tutor_id: acceptStudent.tutor_id,
+          time: { $in: schedule.time },
+        })
+        .populate('subject_id');
+      if (existedClass)
+        throw new BadRequestException({
+          message: `Bạn đã đăng kí lớp vào khung giờ này`,
+          data: existedClass,
+        });
+
+      const data = await this.scheduleModal.findByIdAndUpdate(
+        acceptStudent.schedule_id,
+        { tutor_id: acceptStudent.tutor_id, is_accepted: true },
+        { new: true },
+      );
+      await this.userService.cashMoney({
+        _id: acceptStudent.tutor_id,
+        money: Number(schedule.price) * -3,
+      });
+      return {
+        status: HttpStatus.OK,
+        message: 'Bạn đã accept lớp này thành công',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   findAll() {
     return `This action returns all schedules`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} schedule`;
+  async findOne(_id: string) {
+    try {
+      return await this.scheduleModal.findOne({ _id });
+    } catch (error) {
+      throw error;
+    }
   }
 
   update(id: number, updateScheduleDto: UpdateScheduleDto) {
