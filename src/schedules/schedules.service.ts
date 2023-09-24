@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { Schedule } from 'src/schemas/schedules.schema';
 import { CreateScheduleByStudentDto } from './dto/create-schedule-by-student.dto';
 import { UsersService } from 'src/users/users.service';
+import { FindScheduleDto } from './dto/find-schedule-dto';
 
 @Injectable()
 export class SchedulesService {
@@ -26,10 +27,15 @@ export class SchedulesService {
           message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
         });
 
+      const timeArray = this.convertToTimeArray(
+        createScheduleByTutorDto.day,
+        createScheduleByTutorDto.hour,
+      );
+
       const existedClass = await this.scheduleModal
         .findOne({
           tutor_id: createScheduleByTutorDto.tutor_id,
-          time: { $in: createScheduleByTutorDto.time },
+          time: { $in: timeArray },
         })
         .populate('subject_id');
 
@@ -42,6 +48,7 @@ export class SchedulesService {
       const data = await this.scheduleModal.create({
         ...createScheduleByTutorDto,
         type: 2,
+        time: timeArray,
       });
 
       await this.userService.cashMoney({
@@ -76,10 +83,15 @@ export class SchedulesService {
           message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
         });
 
+      const timeArray = this.convertToTimeArray(
+        createScheduleByStudentDto.day,
+        createScheduleByStudentDto.hour,
+      );
+
       const existedClass = await this.scheduleModal
         .findOne({
           student_id: createScheduleByStudentDto.student_id,
-          time: { $in: createScheduleByStudentDto.time },
+          time: { $in: timeArray },
         })
         .populate('subject_id');
 
@@ -91,6 +103,7 @@ export class SchedulesService {
 
       const data = await this.scheduleModal.create({
         ...createScheduleByStudentDto,
+        time: timeArray,
         type: 1,
       });
 
@@ -109,13 +122,31 @@ export class SchedulesService {
     }
   }
 
-  async findTutor() {
+  async findTutor(findScheduleDto: FindScheduleDto) {
     try {
+      let condition = {};
+      if (findScheduleDto.subject_id) {
+        condition = { ...condition, subject_id: findScheduleDto.subject_id };
+      }
+
+      if (findScheduleDto.price) {
+        condition = { ...condition, price: { $lte: findScheduleDto.price } };
+      }
+
+      if (findScheduleDto.hour) {
+        condition = { ...condition, hour: { $in: findScheduleDto.hour } };
+      }
+
+      if (findScheduleDto.day) {
+        condition = { ...condition, day: { $in: findScheduleDto.day } };
+      }
+
       const data = await this.scheduleModal
         .find({
           is_accepted: false,
           type: 2,
           student_id: { $exists: false },
+          ...condition,
         })
         .populate({ path: 'tutor_id', select: '-password' })
         .populate('subject_id');
@@ -129,10 +160,32 @@ export class SchedulesService {
     }
   }
 
-  async findStudent() {
+  async findStudent(findScheduleDto: FindScheduleDto) {
     try {
+      let condition = {};
+      if (findScheduleDto.subject_id) {
+        condition = { ...condition, subject_id: findScheduleDto.subject_id };
+      }
+
+      if (findScheduleDto.price) {
+        condition = { ...condition, price: { $lte: findScheduleDto.price } };
+      }
+
+      if (findScheduleDto.hour) {
+        condition = { ...condition, hour: { $in: findScheduleDto.hour } };
+      }
+
+      if (findScheduleDto.day) {
+        condition = { ...condition, day: { $in: findScheduleDto.day } };
+      }
+
       const data = await this.scheduleModal
-        .find({ is_accepted: false, type: 1, tutor_id: { $exists: false } })
+        .find({
+          is_accepted: false,
+          type: 1,
+          tutor_id: { $exists: false },
+          ...condition,
+        })
         .populate({ path: 'student_id', select: '-password' })
         .populate('subject_id');
 
@@ -159,5 +212,15 @@ export class SchedulesService {
 
   remove(id: number) {
     return `This action removes a #${id} schedule`;
+  }
+
+  convertToTimeArray(day: string[], hour: string[]) {
+    const time = [];
+
+    for (let i = 0; i < day.length; i++) {
+      time.push(day[i] + '-' + hour[i]);
+    }
+
+    return time;
   }
 }

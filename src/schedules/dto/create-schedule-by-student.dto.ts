@@ -10,7 +10,10 @@ export class CreateScheduleByStudentDto {
   subject_id: string;
 
   @ArrayNotEmpty()
-  time: string[];
+  day: string[];
+
+  @ArrayNotEmpty()
+  hour: string[];
 
   @IsNotEmpty()
   @IsNumber()

@@ -15,6 +15,10 @@ export class Schedule {
   // 1: 7-8,5 2:7,5-9 3:...
   @Prop()
   time: string[];
+  @Prop()
+  day: string[];
+  @Prop()
+  hour: string[];
   @Prop({ default: false })
   is_accepted: boolean;
   // 1.Student   2.Tutor
