@@ -37,10 +37,10 @@ export class UsersController {
     return this.usersService.changePassword(passwordDto);
   }
 
-  // @Patch('/change-password/:id')
-  // changeInfo(@Body() passwordDto: PasswordDto) {
-  //   return this.usersService.changeInfo(passwordDto);
-  // }
+  @Patch('/change-info')
+  changeInfo(@Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.changeInfo(updateUserDto);
+  }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

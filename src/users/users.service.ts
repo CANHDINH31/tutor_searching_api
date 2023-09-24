@@ -96,8 +96,20 @@ export class UsersService {
     }
   }
 
-  changeInfo(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async changeInfo(updateUserDto: UpdateUserDto) {
+    try {
+      const { _id, ...rest } = updateUserDto;
+      const data = await this.userModal.findByIdAndUpdate(_id, rest, {
+        new: true,
+      });
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Cập nhật thông tin thành công',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   remove(id: number) {
