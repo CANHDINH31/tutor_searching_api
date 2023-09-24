@@ -27,15 +27,20 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Patch('/cash/:id')
-  cashMoney(@Param('id') id: string, @Body() moneyDto: MoneyDto) {
-    return this.usersService.cashMoney(id, moneyDto);
+  @Patch('/cash')
+  cashMoney(@Body() moneyDto: MoneyDto) {
+    return this.usersService.cashMoney(moneyDto);
   }
 
-  @Patch('/change-password/:id')
-  changePassword(@Param('id') id: string, @Body() passwordDto: PasswordDto) {
-    return this.usersService.changePassword(id, passwordDto);
+  @Patch('/change-password')
+  changePassword(@Body() passwordDto: PasswordDto) {
+    return this.usersService.changePassword(passwordDto);
   }
+
+  // @Patch('/change-password/:id')
+  // changeInfo(@Body() passwordDto: PasswordDto) {
+  //   return this.usersService.changeInfo(passwordDto);
+  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

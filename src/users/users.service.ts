@@ -55,10 +55,10 @@ export class UsersService {
     } catch (error) {}
   }
 
-  async cashMoney(id: string, moneyDto: MoneyDto) {
+  async cashMoney(moneyDto: MoneyDto) {
     try {
       const data = await this.userModal.findByIdAndUpdate(
-        id,
+        moneyDto._id,
         { $inc: { money: moneyDto.money } },
         { new: true },
       );
@@ -72,9 +72,9 @@ export class UsersService {
     }
   }
 
-  async changePassword(id: string, passwordDto: PasswordDto) {
+  async changePassword(passwordDto: PasswordDto) {
     try {
-      const existedAccount = await this.findOne(id);
+      const existedAccount = await this.findOne(passwordDto._id);
       if (!existedAccount) {
         throw new BadRequestException({
           message: 'Tài khoản của bạn không tồn tại',
@@ -84,7 +84,7 @@ export class UsersService {
         throw new BadRequestException({
           message: 'Mật khẩu cũ không chính xác',
         });
-      await this.userModal.findByIdAndUpdate(id, {
+      await this.userModal.findByIdAndUpdate(passwordDto._id, {
         password: passwordDto.new_password,
       });
       return {
@@ -96,7 +96,7 @@ export class UsersService {
     }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  changeInfo(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
