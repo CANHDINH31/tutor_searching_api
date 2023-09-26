@@ -1,6 +1,16 @@
-import { ArrayNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class FindScheduleDto {
+  @IsNotEmpty()
+  @IsNumber()
+  type: number;
+
   @IsOptional()
   @IsString()
   subject_id: string;
@@ -16,4 +26,8 @@ export class FindScheduleDto {
   @IsOptional()
   @IsNumber()
   price: number;
+
+  @IsOptional()
+  @IsNumber()
+  num_sessions: number;
 }

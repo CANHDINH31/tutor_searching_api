@@ -1,9 +1,9 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class AcceptTutor {
+export class AcceptSchedule {
   @IsNotEmpty()
   @IsString()
-  student_id: string;
+  user_id: string;
 
   @IsNotEmpty()
   @IsString()

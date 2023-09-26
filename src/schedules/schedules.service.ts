@@ -1,17 +1,14 @@
-import { UsersModule } from './../users/users.module';
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateScheduleByTutorDto } from './dto/create-schedule-by-tutor.dto';
+import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Schedule } from 'src/schemas/schedules.schema';
-import { CreateScheduleByStudentDto } from './dto/create-schedule-by-student.dto';
 import { UsersService } from 'src/users/users.service';
 import { FindScheduleDto } from './dto/find-schedule-dto';
-import { AcceptTutor } from './dto/accept-tutor';
-import { AcceptStudent } from './dto/accept-student';
 import { MyScheduleDto } from './dto/my-schedule';
 import { MyRegisterDto } from './dto/my-register';
 import { RemoveScheduleDto } from './dto/remove-schedule';
+import { AcceptSchedule } from './dto/accept-schedule.dto';
 
 @Injectable()
 export class SchedulesService {
@@ -19,46 +16,61 @@ export class SchedulesService {
     @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
     private userService: UsersService,
   ) {}
-  async createByTutor(createScheduleByTutorDto: CreateScheduleByTutorDto) {
+  async create(createScheduleDto: CreateScheduleDto) {
     try {
-      const checkedExistTutor = await this.userService.findOne(
-        createScheduleByTutorDto.tutor_id,
-      );
-      if (!checkedExistTutor)
-        throw new BadRequestException({ message: 'Bạn không phải là gia sư' });
+      const { user_id, ...rest } = createScheduleDto;
+      const existUser = await this.userService.findOne(user_id);
 
-      if (checkedExistTutor.money < createScheduleByTutorDto.price * 3)
+      if (!existUser)
+        throw new BadRequestException({ message: 'Không tìm tháy user_id' });
+
+      if (existUser.money < createScheduleDto.price * 3)
         throw new BadRequestException({
           message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
         });
 
       const timeArray = this.convertToTimeArray(
-        createScheduleByTutorDto.day,
-        createScheduleByTutorDto.hour,
+        createScheduleDto.day,
+        createScheduleDto.hour,
       );
 
-      const existedClass = await this.scheduleModal
-        .findOne({
-          tutor_id: createScheduleByTutorDto.tutor_id,
-          time: { $in: timeArray },
-        })
-        .populate('subject_id');
+      let existClass = {} as any;
 
-      if (existedClass)
+      if (existUser.role === 2) {
+        existClass = await this.scheduleModal
+          .findOne({
+            tutor_id: user_id,
+            time: { $in: timeArray },
+          })
+          .populate('subject_id');
+      } else if (existUser.role === 1) {
+        existClass = await this.scheduleModal
+          .findOne({
+            student_id: user_id,
+            time: { $in: timeArray },
+          })
+          .populate('subject_id');
+      }
+
+      if (existClass)
         throw new BadRequestException({
-          message: `Bạn đã đăng kí lớp vào khung giờ này`,
-          data: existedClass,
+          message: existClass?.is_accepted
+            ? 'Bạn đã có lớp học trùng khung giờ này'
+            : 'Bạn đang đăng một trùng với khung giờ này ',
+          data: existClass,
         });
 
       const data = await this.scheduleModal.create({
-        ...createScheduleByTutorDto,
-        type: 2,
+        ...rest,
+        ...(existUser.role === 1 && { student_id: user_id }),
+        ...(existUser.role === 2 && { tutor_id: user_id }),
+        type: existUser.role,
         time: timeArray,
       });
 
       await this.userService.cashMoney({
-        _id: createScheduleByTutorDto.tutor_id,
-        money: Number(createScheduleByTutorDto.price) * -3,
+        _id: createScheduleDto.user_id,
+        money: Number(createScheduleDto.price) * -3,
       });
 
       return {
@@ -71,63 +83,7 @@ export class SchedulesService {
     }
   }
 
-  async createByStudent(
-    createScheduleByStudentDto: CreateScheduleByStudentDto,
-  ) {
-    try {
-      const checkedExistStudent = await this.userService.findOne(
-        createScheduleByStudentDto.student_id,
-      );
-      if (!checkedExistStudent)
-        throw new BadRequestException({
-          message: 'Bạn không phải là học sinh',
-        });
-
-      if (checkedExistStudent.money < createScheduleByStudentDto.price * 3)
-        throw new BadRequestException({
-          message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
-        });
-
-      const timeArray = this.convertToTimeArray(
-        createScheduleByStudentDto.day,
-        createScheduleByStudentDto.hour,
-      );
-
-      const existedClass = await this.scheduleModal
-        .findOne({
-          student_id: createScheduleByStudentDto.student_id,
-          time: { $in: timeArray },
-        })
-        .populate('subject_id');
-
-      if (existedClass)
-        throw new BadRequestException({
-          message: `Bạn đã đăng kí lớp vào khung giờ này`,
-          data: existedClass,
-        });
-
-      const data = await this.scheduleModal.create({
-        ...createScheduleByStudentDto,
-        time: timeArray,
-        type: 1,
-      });
-
-      await this.userService.cashMoney({
-        _id: createScheduleByStudentDto.student_id,
-        money: Number(createScheduleByStudentDto.price) * -3,
-      });
-
-      return {
-        status: HttpStatus.OK,
-        message: 'Đăng kí lớp thành công',
-        data,
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findTutor(findScheduleDto: FindScheduleDto) {
+  async find(findScheduleDto: FindScheduleDto) {
     try {
       let condition = {};
       if (findScheduleDto.subject_id) {
@@ -136,6 +92,13 @@ export class SchedulesService {
 
       if (findScheduleDto.price) {
         condition = { ...condition, price: { $lte: findScheduleDto.price } };
+      }
+
+      if (findScheduleDto.num_sessions) {
+        condition = {
+          ...condition,
+          num_sessions: { $lte: findScheduleDto.num_sessions },
+        };
       }
 
       if (findScheduleDto.hour) {
@@ -149,48 +112,11 @@ export class SchedulesService {
       const data = await this.scheduleModal
         .find({
           is_accepted: false,
-          type: 2,
-          student_id: { $exists: false },
+          ...(findScheduleDto.type === 2 && { student_id: { $exists: false } }),
+          ...(findScheduleDto.type === 1 && { tutor_id: { $exists: false } }),
           ...condition,
         })
         .populate({ path: 'tutor_id', select: '-password' })
-        .populate('subject_id');
-
-      return {
-        status: HttpStatus.OK,
-        data,
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async findStudent(findScheduleDto: FindScheduleDto) {
-    try {
-      let condition = {};
-      if (findScheduleDto.subject_id) {
-        condition = { ...condition, subject_id: findScheduleDto.subject_id };
-      }
-
-      if (findScheduleDto.price) {
-        condition = { ...condition, price: { $lte: findScheduleDto.price } };
-      }
-
-      if (findScheduleDto.hour) {
-        condition = { ...condition, hour: { $in: findScheduleDto.hour } };
-      }
-
-      if (findScheduleDto.day) {
-        condition = { ...condition, day: { $in: findScheduleDto.day } };
-      }
-
-      const data = await this.scheduleModal
-        .find({
-          is_accepted: false,
-          type: 1,
-          tutor_id: { $exists: false },
-          ...condition,
-        })
         .populate({ path: 'student_id', select: '-password' })
         .populate('subject_id');
 
@@ -203,94 +129,72 @@ export class SchedulesService {
     }
   }
 
-  async acceptTutor(acceptTutor: AcceptTutor) {
+  async accept(acceptSchedule: AcceptSchedule) {
     try {
-      const checkedExistStudent = await this.userService.findOne(
-        acceptTutor.student_id,
-      );
+      const existUser = await this.userService.findOne(acceptSchedule.user_id);
 
-      const schedule = await this.findOne(acceptTutor.schedule_id);
+      const existSchedule = await this.findOne(acceptSchedule.schedule_id);
 
-      if (!checkedExistStudent)
+      if (!existUser)
         throw new BadRequestException({
-          message: 'Bạn không phải là học sinh',
+          message: 'Không tìm thấy user_id',
         });
 
-      if (checkedExistStudent.money < schedule.price * 3)
+      if (!existSchedule)
+        throw new BadRequestException({
+          message: 'Không tìm thấy schedule_id',
+        });
+
+      if (existUser.money < existSchedule.price * 3)
         throw new BadRequestException({
           message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
         });
 
-      const existedClass = await this.scheduleModal
-        .findOne({
-          student_id: acceptTutor.student_id,
-          time: { $in: schedule.time },
-        })
-        .populate('subject_id');
+      let existClass = {} as any;
 
-      if (existedClass)
+      if (existUser.role === 1) {
+        existClass = await this.scheduleModal
+          .findOne({
+            student_id: acceptSchedule.user_id,
+            time: { $in: existSchedule.time },
+          })
+          .populate('subject_id');
+      } else if (existUser.role === 2) {
+        existClass = await this.scheduleModal
+          .findOne({
+            tutor_id: acceptSchedule.user_id,
+            time: { $in: existSchedule.time },
+          })
+          .populate('subject_id');
+      }
+
+      if (existClass)
         throw new BadRequestException({
-          message: `Bạn đã đăng kí lớp vào khung giờ này`,
-          data: existedClass,
+          message: existClass?.is_accepted
+            ? 'Bạn đã có lớp học trùng khung giờ này'
+            : 'Bạn đang đăng một trùng với khung giờ này ',
+          data: existClass,
         });
 
       const data = await this.scheduleModal.findByIdAndUpdate(
-        acceptTutor.schedule_id,
-        { student_id: acceptTutor.student_id, is_accepted: true },
+        acceptSchedule.schedule_id,
+        {
+          ...(existUser.role === 2 && {
+            tutor_id: acceptSchedule.user_id,
+          }),
+          ...(existUser.role === 1 && {
+            student_id: acceptSchedule.user_id,
+          }),
+          is_accepted: true,
+        },
         { new: true },
       );
 
       await this.userService.cashMoney({
-        _id: acceptTutor.student_id,
-        money: Number(schedule.price) * -3,
+        _id: acceptSchedule.user_id,
+        money: Number(existSchedule.price) * -3,
       });
 
-      return {
-        status: HttpStatus.OK,
-        message: 'Bạn đã accept lớp này thành công',
-        data,
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async acceptStudent(acceptStudent: AcceptStudent) {
-    try {
-      const checkedExistTutor = await this.userService.findOne(
-        acceptStudent.tutor_id,
-      );
-      const schedule = await this.findOne(acceptStudent.schedule_id);
-      if (!checkedExistTutor)
-        throw new BadRequestException({
-          message: 'Bạn không phải là gia sư',
-        });
-      if (checkedExistTutor.money < schedule.price * 3)
-        throw new BadRequestException({
-          message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
-        });
-
-      const existedClass = await this.scheduleModal
-        .findOne({
-          tutor_id: acceptStudent.tutor_id,
-          time: { $in: schedule.time },
-        })
-        .populate('subject_id');
-      if (existedClass)
-        throw new BadRequestException({
-          message: `Bạn đã đăng kí lớp vào khung giờ này`,
-          data: existedClass,
-        });
-
-      const data = await this.scheduleModal.findByIdAndUpdate(
-        acceptStudent.schedule_id,
-        { tutor_id: acceptStudent.tutor_id, is_accepted: true },
-        { new: true },
-      );
-      await this.userService.cashMoney({
-        _id: acceptStudent.tutor_id,
-        money: Number(schedule.price) * -3,
-      });
       return {
         status: HttpStatus.OK,
         message: 'Bạn đã accept lớp này thành công',

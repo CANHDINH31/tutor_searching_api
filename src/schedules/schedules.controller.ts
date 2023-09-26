@@ -1,10 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
-import { CreateScheduleByTutorDto } from './dto/create-schedule-by-tutor.dto';
-import { CreateScheduleByStudentDto } from './dto/create-schedule-by-student.dto';
+import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { FindScheduleDto } from './dto/find-schedule-dto';
-import { AcceptTutor } from './dto/accept-tutor';
-import { AcceptStudent } from './dto/accept-student';
+import { AcceptSchedule } from './dto/accept-schedule.dto';
 import { MyScheduleDto } from './dto/my-schedule';
 import { MyRegisterDto } from './dto/my-register';
 import { RemoveScheduleDto } from './dto/remove-schedule';
@@ -13,21 +11,14 @@ import { RemoveScheduleDto } from './dto/remove-schedule';
 export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
-  @Post('/create-by-tutor')
-  createByTutor(@Body() createScheduleByTutorDto: CreateScheduleByTutorDto) {
-    return this.schedulesService.createByTutor(createScheduleByTutorDto);
+  @Post('/create')
+  create(@Body() createScheduleDto: CreateScheduleDto) {
+    return this.schedulesService.create(createScheduleDto);
   }
 
-  @Post('/create-by-student')
-  createByStudent(
-    @Body() createScheduleByStudentDto: CreateScheduleByStudentDto,
-  ) {
-    return this.schedulesService.createByStudent(createScheduleByStudentDto);
-  }
-
-  @Post('/find-tutor')
-  findTutor(@Body() findScheduleDto: FindScheduleDto) {
-    return this.schedulesService.findTutor(findScheduleDto);
+  @Post('/find')
+  find(@Body() findScheduleDto: FindScheduleDto) {
+    return this.schedulesService.find(findScheduleDto);
   }
 
   @Post('/my-schedule')
@@ -40,19 +31,9 @@ export class SchedulesController {
     return this.schedulesService.myRegister(myRegisterDto);
   }
 
-  @Post('/find-student')
-  findStudent(@Body() findScheduleDto: FindScheduleDto) {
-    return this.schedulesService.findStudent(findScheduleDto);
-  }
-
-  @Post('/accept-tutor')
-  acceptTutor(@Body() acceptTutor: AcceptTutor) {
-    return this.schedulesService.acceptTutor(acceptTutor);
-  }
-
-  @Post('/accept-student')
-  acceptStudent(@Body() acceptStudent: AcceptStudent) {
-    return this.schedulesService.acceptStudent(acceptStudent);
+  @Post('/accept')
+  accept(@Body() acceptSchedule: AcceptSchedule) {
+    return this.schedulesService.accept(acceptSchedule);
   }
 
   @Get(':id')

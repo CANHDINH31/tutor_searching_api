@@ -1,9 +1,9 @@
 import { ArrayNotEmpty, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class CreateScheduleByStudentDto {
+export class CreateScheduleDto {
   @IsNotEmpty()
   @IsString()
-  student_id: string;
+  user_id: string;
 
   @IsNotEmpty()
   @IsString()
@@ -14,6 +14,10 @@ export class CreateScheduleByStudentDto {
 
   @ArrayNotEmpty()
   hour: string[];
+
+  @IsNotEmpty()
+  @IsNumber()
+  num_sessions: number;
 
   @IsNotEmpty()
   @IsNumber()
