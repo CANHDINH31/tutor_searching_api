@@ -222,15 +222,19 @@ export class SchedulesService {
         });
       let data;
       if (user.role === 1) {
-        data = await this.scheduleModal.find({
-          student_id: user._id,
-          is_accepted: true,
-        });
+        data = await this.scheduleModal
+          .find({
+            student_id: user._id,
+            is_accepted: true,
+          })
+          .populate('subject_id');
       } else {
-        data = await this.scheduleModal.find({
-          tutor_id: user._id,
-          is_accepted: true,
-        });
+        data = await this.scheduleModal
+          .find({
+            tutor_id: user._id,
+            is_accepted: true,
+          })
+          .populate('subject_id');
       }
 
       return {
@@ -251,15 +255,19 @@ export class SchedulesService {
         });
       let data;
       if (user.role === 1) {
-        data = await this.scheduleModal.find({
-          student_id: user._id,
-          is_accepted: false,
-        });
+        data = await this.scheduleModal
+          .find({
+            student_id: user._id,
+            is_accepted: false,
+          })
+          .populate('subject_id');
       } else {
-        data = await this.scheduleModal.find({
-          tutor_id: user._id,
-          is_accepted: false,
-        });
+        data = await this.scheduleModal
+          .find({
+            tutor_id: user._id,
+            is_accepted: false,
+          })
+          .populate('subject_id');
       }
 
       return {
