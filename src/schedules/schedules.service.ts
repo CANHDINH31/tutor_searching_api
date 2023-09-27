@@ -56,7 +56,7 @@ export class SchedulesService {
         throw new BadRequestException({
           message: existClass?.is_accepted
             ? 'Bạn đã có lớp học trùng khung giờ này'
-            : 'Bạn đang đăng một trùng với khung giờ này ',
+            : 'Bạn đang đăng tạo một lớp trùng với khung giờ này ',
           data: existClass,
         });
 
@@ -172,7 +172,7 @@ export class SchedulesService {
         throw new BadRequestException({
           message: existClass?.is_accepted
             ? 'Bạn đã có lớp học trùng khung giờ này'
-            : 'Bạn đang đăng một trùng với khung giờ này ',
+            : 'Bạn đang đăng tạo một lớp trùng với khung giờ này ',
           data: existClass,
         });
 
