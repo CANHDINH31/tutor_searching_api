@@ -49,6 +49,14 @@ export class UsersService {
     }
   }
 
+  async findAll() {
+    try {
+      return await this.userModal
+        .find({ role: { $ne: 3 } })
+        .select('-password');
+    } catch (error) {}
+  }
+
   async findOne(id: string) {
     try {
       return await this.userModal.findById(id);
