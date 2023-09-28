@@ -227,14 +227,16 @@ export class SchedulesService {
             student_id: user._id,
             is_accepted: true,
           })
-          .populate('subject_id');
+          .populate('subject_id')
+          .populate('student_id');
       } else {
         data = await this.scheduleModal
           .find({
             tutor_id: user._id,
             is_accepted: true,
           })
-          .populate('subject_id');
+          .populate('subject_id')
+          .populate('tutor_id');
       }
 
       return {
@@ -260,14 +262,16 @@ export class SchedulesService {
             student_id: user._id,
             is_accepted: false,
           })
-          .populate('subject_id');
+          .populate('subject_id')
+          .populate('student_id');
       } else {
         data = await this.scheduleModal
           .find({
             tutor_id: user._id,
             is_accepted: false,
           })
-          .populate('subject_id');
+          .populate('subject_id')
+          .populate('tutor_id');
       }
 
       return {
