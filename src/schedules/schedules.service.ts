@@ -287,6 +287,29 @@ export class SchedulesService {
 
   async myRegister(myRegisterDto: MyRegisterDto) {
     try {
+      let condition = {};
+      if (myRegisterDto.subject_id) {
+        condition = { ...condition, subject_id: myRegisterDto.subject_id };
+      }
+
+      if (myRegisterDto.price) {
+        condition = { ...condition, price: { $lte: myRegisterDto.price } };
+      }
+
+      if (myRegisterDto.num_sessions) {
+        condition = {
+          ...condition,
+          num_sessions: { $lte: myRegisterDto.num_sessions },
+        };
+      }
+
+      if (myRegisterDto.hour) {
+        condition = { ...condition, hour: { $in: myRegisterDto.hour } };
+      }
+
+      if (myRegisterDto.day) {
+        condition = { ...condition, day: { $in: myRegisterDto.day } };
+      }
       const user = await this.userService.findOne(myRegisterDto._id);
       if (!user)
         throw new BadRequestException({
@@ -296,6 +319,7 @@ export class SchedulesService {
       if (user.role === 1) {
         data = await this.scheduleModal
           .find({
+            ...condition,
             student_id: user._id,
             is_accepted: false,
           })
@@ -304,6 +328,7 @@ export class SchedulesService {
       } else {
         data = await this.scheduleModal
           .find({
+            ...condition,
             tutor_id: user._id,
             is_accepted: false,
           })
