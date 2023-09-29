@@ -278,33 +278,40 @@ export class SchedulesService {
 
   async myScheduleToday(myScheduleTodayDto: MyScheduleTodayDto) {
     try {
-      // const user = await this.userService.findOne(myScheduleTodayDto._id);
-      // if (!user)
-      //   throw new BadRequestException({
-      //     message: 'Không tồn tại người dùng',
-      //   });
-      // let data;
-      // if (user.role === 1) {
-      //   data = await this.scheduleModal
-      //     .find({
-      //       student_id: user._id,
-      //       is_accepted: true,
-      //     })
-      //     .populate('subject_id')
-      //     .populate('student_id');
-      // } else {
-      //   data = await this.scheduleModal
-      //     .find({
-      //       tutor_id: user._id,
-      //       is_accepted: true,
-      //     })
-      //     .populate('subject_id')
-      //     .populate('tutor_id');
-      // }
-      // return {
-      //   status: HttpStatus.OK,
-      //   data,
-      // };
+      const currentDate = new Date();
+      let currentDay = currentDate.getDay();
+      currentDay = currentDay + 1;
+      if (currentDay == 1) currentDay = currentDay + 7;
+
+      const user = await this.userService.findOne(myScheduleTodayDto._id);
+      if (!user)
+        throw new BadRequestException({
+          message: 'Không tồn tại người dùng',
+        });
+      let data;
+      if (user.role === 1) {
+        data = await this.scheduleModal
+          .find({
+            student_id: user._id,
+            is_accepted: true,
+            day: { $in: Number(currentDay) },
+          })
+          .populate('subject_id')
+          .populate('student_id');
+      } else {
+        data = await this.scheduleModal
+          .find({
+            tutor_id: user._id,
+            is_accepted: true,
+            day: { $in: Number(currentDay) },
+          })
+          .populate('subject_id')
+          .populate('tutor_id');
+      }
+      return {
+        status: HttpStatus.OK,
+        data,
+      };
     } catch (error) {
       throw error;
     }
