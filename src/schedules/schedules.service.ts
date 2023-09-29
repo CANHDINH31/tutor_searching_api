@@ -9,6 +9,7 @@ import { MyScheduleDto } from './dto/my-schedule';
 import { MyRegisterDto } from './dto/my-register';
 import { RemoveScheduleDto } from './dto/remove-schedule';
 import { AcceptSchedule } from './dto/accept-schedule.dto';
+import { MyScheduleTodayDto } from './dto/my-schedule-today';
 
 @Injectable()
 export class SchedulesService {
@@ -228,7 +229,8 @@ export class SchedulesService {
             is_accepted: true,
           })
           .populate('subject_id')
-          .populate('student_id');
+          .populate('student_id')
+          .populate('tutor_id');
       } else {
         data = await this.scheduleModal
           .find({
@@ -236,6 +238,7 @@ export class SchedulesService {
             is_accepted: true,
           })
           .populate('subject_id')
+          .populate('student_id')
           .populate('tutor_id');
       }
 
@@ -243,6 +246,40 @@ export class SchedulesService {
         status: HttpStatus.OK,
         data,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async myScheduleToday(myScheduleTodayDto: MyScheduleTodayDto) {
+    try {
+      // const user = await this.userService.findOne(myScheduleTodayDto._id);
+      // if (!user)
+      //   throw new BadRequestException({
+      //     message: 'Không tồn tại người dùng',
+      //   });
+      // let data;
+      // if (user.role === 1) {
+      //   data = await this.scheduleModal
+      //     .find({
+      //       student_id: user._id,
+      //       is_accepted: true,
+      //     })
+      //     .populate('subject_id')
+      //     .populate('student_id');
+      // } else {
+      //   data = await this.scheduleModal
+      //     .find({
+      //       tutor_id: user._id,
+      //       is_accepted: true,
+      //     })
+      //     .populate('subject_id')
+      //     .populate('tutor_id');
+      // }
+      // return {
+      //   status: HttpStatus.OK,
+      //   data,
+      // };
     } catch (error) {
       throw error;
     }
