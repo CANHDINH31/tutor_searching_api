@@ -20,6 +20,11 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('/statis')
+  statis() {
+    return this.usersService.statis();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);

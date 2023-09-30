@@ -16,6 +16,21 @@ export class UsersService {
     @InjectModel(User.name) private userModal: Model<User>,
     @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
   ) {}
+
+  async statis() {
+    try {
+      const count_student = await this.userModal
+        .find({ role: 1 })
+        .countDocuments();
+      const count_tutor = await this.userModal
+        .find({ role: 2 })
+        .countDocuments();
+      const count_schedule = await this.scheduleModal.find({}).countDocuments();
+      return { count_student, count_tutor, count_schedule };
+    } catch (error) {
+      throw error;
+    }
+  }
   async create(createUserDto: CreateUserDto) {
     try {
       const userCreated = await this.userModal.create({ ...createUserDto });
