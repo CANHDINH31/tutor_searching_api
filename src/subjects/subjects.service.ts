@@ -26,7 +26,7 @@ export class SubjectsService {
 
   async findAll() {
     try {
-      const data = await this.subjectModal.find({});
+      const data = await this.subjectModal.find({ is_delete: false });
       return {
         status: HttpStatus.OK,
         message: 'Lấy danh sách môn học thành công',
@@ -53,6 +53,14 @@ export class SubjectsService {
         message: 'Cập nhật môn học thành công',
         data,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async softDelete(id: string) {
+    try {
+      await this.subjectModal.findByIdAndUpdate(id, { is_delete: true });
     } catch (error) {
       throw error;
     }

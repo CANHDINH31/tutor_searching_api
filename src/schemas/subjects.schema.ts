@@ -7,6 +7,8 @@ export type SubjectDocument = HydratedDocument<Subject>;
 export class Subject {
   @Prop()
   name: string;
+  @Prop({ default: false })
+  is_delete: boolean;
 }
 
 export const SubjectSchema = SchemaFactory.createForClass(Subject);

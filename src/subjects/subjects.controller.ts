@@ -30,6 +30,11 @@ export class SubjectsController {
     return this.subjectsService.findOne(+id);
   }
 
+  @Patch('/soft-delete/:id')
+  softDelete(@Param('id') id: string) {
+    return this.subjectsService.softDelete(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
     return this.subjectsService.update(id, updateSubjectDto);
