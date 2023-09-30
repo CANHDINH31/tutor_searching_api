@@ -40,6 +40,11 @@ export class UsersController {
     return this.usersService.changeInfo(updateUserDto);
   }
 
+  @Patch('/block/:id')
+  block(@Param('id') id: string) {
+    return this.usersService.block(id);
+  }
+
   @Post('/delete-user')
   remove(@Body() deleteUserDto: DeleteUserDto) {
     return this.usersService.remove(deleteUserDto);

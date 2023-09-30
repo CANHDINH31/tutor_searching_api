@@ -33,6 +33,9 @@ export class User {
 
   @Prop()
   date_of_birth: string;
+
+  @Prop({ default: false })
+  is_block: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

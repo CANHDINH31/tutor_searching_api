@@ -25,6 +25,12 @@ export class SchedulesService {
       if (!existUser)
         throw new BadRequestException({ message: 'Không tìm tháy user_id' });
 
+      if (existUser?.is_block)
+        throw new BadRequestException({
+          message:
+            'Tài khoản của bạn đã bị khóa, vui lòng liên hệ với admin để mở khóa',
+        });
+
       if (existUser.money < createScheduleDto.price * 3)
         throw new BadRequestException({
           message: 'Số tiền trong tài khoản của bạn chưa đủ để đăng kí lớp',
@@ -144,6 +150,12 @@ export class SchedulesService {
       if (!existSchedule)
         throw new BadRequestException({
           message: 'Không tìm thấy schedule_id',
+        });
+
+      if (existUser?.is_block)
+        throw new BadRequestException({
+          message:
+            'Tài khoản của bạn đã bị khóa, vui lòng liên hệ với admin để mở khóa',
         });
 
       if (existUser.money < existSchedule.price * 3)

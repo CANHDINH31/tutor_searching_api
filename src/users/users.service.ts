@@ -126,6 +126,16 @@ export class UsersService {
     }
   }
 
+  async block(id: string) {
+    try {
+      const user = await this.userModal.findById(id);
+      user.is_block = !user.is_block;
+      await user.save();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async remove(deleteUserDto: DeleteUserDto) {
     try {
       await this.userModal.deleteMany({ _id: { $in: deleteUserDto.list_id } });

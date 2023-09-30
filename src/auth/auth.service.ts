@@ -35,6 +35,11 @@ export class AuthService {
       if (!isCorrectPassword)
         throw new BadRequestException({ message: 'Mật khẩu chưa chính xác' });
 
+      if (existAccount?.is_block)
+        throw new BadRequestException({
+          message:
+            'Tài khoản của bạn đã bị khóa, vui lòng liên hệ với admin để mở khóa',
+        });
       return {
         status: HttpStatus.OK,
         message: 'Đăng nhập thành công',
