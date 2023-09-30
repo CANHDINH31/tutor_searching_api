@@ -17,6 +17,17 @@ export class SchedulesService {
     @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
     private userService: UsersService,
   ) {}
+  async index() {
+    try {
+      return await this.scheduleModal
+        .find()
+        .populate('subject_id')
+        .populate('student_id')
+        .populate('tutor_id');
+    } catch (error) {
+      throw error;
+    }
+  }
   async create(createScheduleDto: CreateScheduleDto) {
     try {
       const { user_id, ...rest } = createScheduleDto;

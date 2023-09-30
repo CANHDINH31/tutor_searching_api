@@ -47,6 +47,11 @@ export class SchedulesController {
     return this.schedulesService.findOne(id);
   }
 
+  @Get('/')
+  index() {
+    return this.schedulesService.index();
+  }
+
   @Post('remove-schedule')
   remove(@Body() removeScheduleDto: RemoveScheduleDto) {
     return this.schedulesService.remove(removeScheduleDto);
