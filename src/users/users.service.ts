@@ -7,10 +7,15 @@ import { Model } from 'mongoose';
 import { FindUserByEmailAndUsernameDto } from './dto/find-user-by-email-and-username.dto';
 import { MoneyDto } from './dto/money-dto';
 import { PasswordDto } from './dto/password-dto';
+import { DeleteUserDto } from './dto/delete-user.dto';
+import { Schedule } from 'src/schemas/schedules.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModal: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModal: Model<User>,
+    @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
+  ) {}
   async create(createUserDto: CreateUserDto) {
     try {
       const userCreated = await this.userModal.create({ ...createUserDto });
@@ -53,7 +58,8 @@ export class UsersService {
     try {
       return await this.userModal
         .find({ role: { $ne: 3 } })
-        .select('-password');
+        .select('-password')
+        .sort({ createdAt: -1 });
     } catch (error) {}
   }
 
@@ -120,7 +126,17 @@ export class UsersService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(deleteUserDto: DeleteUserDto) {
+    try {
+      await this.userModal.deleteMany({ _id: { $in: deleteUserDto.list_id } });
+      await this.scheduleModal.deleteMany({
+        $or: [
+          { tutor_id: { $in: deleteUserDto.list_id } },
+          { student_id: { $in: deleteUserDto.list_id } },
+        ],
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 }
