@@ -6,7 +6,6 @@ import { AcceptSchedule } from './dto/accept-schedule.dto';
 import { MyScheduleDto } from './dto/my-schedule';
 import { MyRegisterDto } from './dto/my-register';
 import { RemoveScheduleDto } from './dto/remove-schedule';
-import { MyScheduleTodayDto } from './dto/my-schedule-today';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -23,13 +22,13 @@ export class SchedulesController {
   }
 
   @Post('/my-schedule')
-  mySchedule(@Body() myScheduleDto: MyScheduleDto) {
-    return this.schedulesService.mySchedule(myScheduleDto);
+  mySchedule(@Body() myScheduleDto: MyScheduleDto, @Req() req) {
+    return this.schedulesService.mySchedule(myScheduleDto, req?.user?._id);
   }
 
-  @Post('/my-schedule-today')
-  myScheduleToday(@Body() myScheduleTodayDto: MyScheduleTodayDto) {
-    return this.schedulesService.myScheduleToday(myScheduleTodayDto);
+  @Get('/my-schedule-today')
+  myScheduleToday(@Req() req) {
+    return this.schedulesService.myScheduleToday(req?.user?._id);
   }
 
   @Post('/my-register')

@@ -7,10 +7,6 @@ import {
 } from 'class-validator';
 
 export class MyScheduleDto {
-  @IsNotEmpty()
-  @IsString()
-  _id: string;
-
   @IsOptional()
   @IsString()
   subject_id: string;

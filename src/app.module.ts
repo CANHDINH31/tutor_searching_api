@@ -52,6 +52,10 @@ export class AppModule implements NestModule {
           path: '/api/schedules/find',
           method: RequestMethod.POST,
         },
+        {
+          path: '/api/schedules',
+          method: RequestMethod.GET,
+        },
       )
       .forRoutes('*');
   }

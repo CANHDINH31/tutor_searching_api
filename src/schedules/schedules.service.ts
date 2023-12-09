@@ -241,7 +241,7 @@ export class SchedulesService {
     }
   }
 
-  async mySchedule(myScheduleDto: MyScheduleDto) {
+  async mySchedule(myScheduleDto: MyScheduleDto, userId: string) {
     try {
       let condition = {};
       if (myScheduleDto.subject_id) {
@@ -266,7 +266,7 @@ export class SchedulesService {
       if (myScheduleDto.day) {
         condition = { ...condition, day: { $in: myScheduleDto.day } };
       }
-      const user = await this.userService.findOne(myScheduleDto._id);
+      const user = await this.userService.findOne(userId);
       if (!user)
         throw new BadRequestException({
           message: 'Không tồn tại người dùng',
@@ -303,14 +303,14 @@ export class SchedulesService {
     }
   }
 
-  async myScheduleToday(myScheduleTodayDto: MyScheduleTodayDto) {
+  async myScheduleToday(userId: string) {
     try {
       const currentDate = new Date();
       let currentDay = currentDate.getDay();
       currentDay = currentDay + 1;
       if (currentDay == 1) currentDay = currentDay + 7;
 
-      const user = await this.userService.findOne(myScheduleTodayDto._id);
+      const user = await this.userService.findOne(userId);
       if (!user)
         throw new BadRequestException({
           message: 'Không tồn tại người dùng',
