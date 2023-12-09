@@ -10,13 +10,18 @@ import { PasswordDto } from './dto/password-dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { Schedule } from 'src/schemas/schedules.schema';
 import * as bcrypt from 'bcrypt';
+import * as CryptoJS from 'crypto-js';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModal: Model<User>,
     @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
+    private configService: ConfigService,
   ) {}
+
+  private encryptKey = this.configService.get('ENCRYPT_KEY');
 
   async statis(role: number) {
     if (role !== 3) {
@@ -92,7 +97,10 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(encryptId: string) {
+    const id = CryptoJS.AES.decrypt(encryptId, this.encryptKey).toString(
+      CryptoJS.enc.Utf8,
+    );
     try {
       return await this.userModal.findById(id);
     } catch (error) {}
@@ -171,7 +179,11 @@ export class UsersService {
     }
   }
 
-  async block(id: string, role: number) {
+  async block(encryptId: string, role: number) {
+    const id = CryptoJS.AES.decrypt(encryptId, this.encryptKey).toString(
+      CryptoJS.enc.Utf8,
+    );
+
     if (role !== 3) {
       throw new BadRequestException({
         message: 'Chỉ admin mới xem được khóa người dùng',

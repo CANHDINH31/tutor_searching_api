@@ -4,12 +4,17 @@ import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Subject } from 'src/schemas/subjects.schema';
+import * as CryptoJS from 'crypto-js';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SubjectsService {
   constructor(
     @InjectModel(Subject.name) private subjectModal: Model<Subject>,
+    private configService: ConfigService,
   ) {}
+
+  private encryptKey = this.configService.get('ENCRYPT_KEY');
   async create(createSubjectDto: CreateSubjectDto, role: number) {
     if (role !== 3) {
       throw new BadRequestException({
@@ -46,7 +51,15 @@ export class SubjectsService {
     return `This action returns a #${id} subject`;
   }
 
-  async update(id: string, updateSubjectDto: UpdateSubjectDto, role: number) {
+  async update(
+    encryptId: string,
+    updateSubjectDto: UpdateSubjectDto,
+    role: number,
+  ) {
+    const id = CryptoJS.AES.decrypt(encryptId, this.encryptKey).toString(
+      CryptoJS.enc.Utf8,
+    );
+
     if (role !== 3) {
       throw new BadRequestException({
         message: 'Chỉ admin mới được cập nhật môn học',
@@ -69,7 +82,11 @@ export class SubjectsService {
     }
   }
 
-  async softDelete(id: string, role: number) {
+  async softDelete(encryptId: string, role: number) {
+    const id = CryptoJS.AES.decrypt(encryptId, this.encryptKey).toString(
+      CryptoJS.enc.Utf8,
+    );
+
     if (role !== 3) {
       throw new BadRequestException({
         message: 'Chỉ admin mới được xóa môn học',
@@ -86,7 +103,11 @@ export class SubjectsService {
     }
   }
 
-  async remove(id: string, role: number) {
+  async remove(encryptId: string, role: number) {
+    const id = CryptoJS.AES.decrypt(encryptId, this.encryptKey).toString(
+      CryptoJS.enc.Utf8,
+    );
+
     if (role !== 3) {
       throw new BadRequestException({
         message: 'Chỉ admin mới được xóa môn học',
