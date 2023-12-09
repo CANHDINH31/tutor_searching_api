@@ -28,10 +28,10 @@ export class SchedulesService {
       throw error;
     }
   }
-  async create(createScheduleDto: CreateScheduleDto) {
+
+  async create(createScheduleDto: CreateScheduleDto, userId: string) {
     try {
-      const { user_id, ...rest } = createScheduleDto;
-      const existUser = await this.userService.findOne(user_id);
+      const existUser = await this.userService.findOne(userId);
 
       if (!existUser)
         throw new BadRequestException({ message: 'Không tìm tháy user_id' });
@@ -57,14 +57,14 @@ export class SchedulesService {
       if (existUser.role === 2) {
         existClass = await this.scheduleModal
           .findOne({
-            tutor_id: user_id,
+            tutor_id: userId,
             time: { $in: timeArray },
           })
           .populate('subject_id');
       } else if (existUser.role === 1) {
         existClass = await this.scheduleModal
           .findOne({
-            student_id: user_id,
+            student_id: userId,
             time: { $in: timeArray },
           })
           .populate('subject_id');
@@ -79,17 +79,19 @@ export class SchedulesService {
         });
 
       const data = await this.scheduleModal.create({
-        ...rest,
-        ...(existUser.role === 1 && { student_id: user_id }),
-        ...(existUser.role === 2 && { tutor_id: user_id }),
+        ...createScheduleDto,
+        ...(existUser.role === 1 && { student_id: userId }),
+        ...(existUser.role === 2 && { tutor_id: userId }),
         type: existUser.role,
         time: timeArray,
       });
 
-      // await this.userService.cashMoney({
-      //   _id: createScheduleDto.user_id,
-      //   money: Number(createScheduleDto.price) * -3,
-      // });
+      await this.userService.cashMoney(
+        {
+          money: Number(createScheduleDto.price) * -3,
+        },
+        userId,
+      );
 
       return {
         status: HttpStatus.OK,
@@ -147,9 +149,9 @@ export class SchedulesService {
     }
   }
 
-  async accept(acceptSchedule: AcceptSchedule) {
+  async accept(acceptSchedule: AcceptSchedule, userId: string) {
     try {
-      const existUser = await this.userService.findOne(acceptSchedule.user_id);
+      const existUser = await this.userService.findOne(userId);
 
       const existSchedule = await this.findOne(acceptSchedule.schedule_id);
 
@@ -179,14 +181,14 @@ export class SchedulesService {
       if (existUser.role === 1) {
         existClass = await this.scheduleModal
           .findOne({
-            student_id: acceptSchedule.user_id,
+            student_id: userId,
             time: { $in: existSchedule.time },
           })
           .populate('subject_id');
       } else if (existUser.role === 2) {
         existClass = await this.scheduleModal
           .findOne({
-            tutor_id: acceptSchedule.user_id,
+            tutor_id: userId,
             time: { $in: existSchedule.time },
           })
           .populate('subject_id');
@@ -204,20 +206,22 @@ export class SchedulesService {
         acceptSchedule.schedule_id,
         {
           ...(existUser.role === 2 && {
-            tutor_id: acceptSchedule.user_id,
+            tutor_id: userId,
           }),
           ...(existUser.role === 1 && {
-            student_id: acceptSchedule.user_id,
+            student_id: userId,
           }),
           is_accepted: true,
         },
         { new: true },
       );
 
-      // await this.userService.cashMoney({
-      //   _id: acceptSchedule.user_id,
-      //   money: Number(existSchedule.price) * -3,
-      // });
+      await this.userService.cashMoney(
+        {
+          money: Number(existSchedule.price) * -3,
+        },
+        userId,
+      );
 
       return {
         status: HttpStatus.OK,
@@ -340,7 +344,7 @@ export class SchedulesService {
     }
   }
 
-  async myRegister(myRegisterDto: MyRegisterDto) {
+  async myRegister(myRegisterDto: MyRegisterDto, userId: string) {
     try {
       let condition = {};
       if (myRegisterDto.subject_id) {
@@ -365,7 +369,7 @@ export class SchedulesService {
       if (myRegisterDto.day) {
         condition = { ...condition, day: { $in: myRegisterDto.day } };
       }
-      const user = await this.userService.findOne(myRegisterDto._id);
+      const user = await this.userService.findOne(userId);
       if (!user)
         throw new BadRequestException({
           message: 'Không tồn tại người dùng',
@@ -405,17 +409,21 @@ export class SchedulesService {
       const schedule = await this.findOne(removeScheduleDto.schedule_id);
       if (!schedule)
         throw new BadRequestException({ message: 'Không có lịch trên' });
-      // if (schedule.type === 1) {
-      //   await this.userService.cashMoney({
-      //     _id: schedule.student_id,
-      //     money: Number(schedule.price) * 3,
-      //   });
-      // } else {
-      //   await this.userService.cashMoney({
-      //     _id: schedule.tutor_id,
-      //     money: Number(schedule.price) * 3,
-      //   });
-      // }
+      if (schedule.type === 1) {
+        await this.userService.cashMoney(
+          {
+            money: Number(schedule.price) * 3,
+          },
+          schedule.student_id,
+        );
+      } else {
+        await this.userService.cashMoney(
+          {
+            money: Number(schedule.price) * 3,
+          },
+          schedule.tutor_id,
+        );
+      }
       await this.scheduleModal.findByIdAndRemove(removeScheduleDto.schedule_id);
       return {
         status: HttpStatus.ACCEPTED,

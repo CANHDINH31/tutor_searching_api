@@ -1,16 +1,6 @@
-import {
-  ArrayNotEmpty,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { ArrayNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class MyRegisterDto {
-  @IsNotEmpty()
-  @IsString()
-  _id: string;
-
   @IsOptional()
   @IsString()
   subject_id: string;

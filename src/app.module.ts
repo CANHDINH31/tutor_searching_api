@@ -42,10 +42,17 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
-      .exclude('/api/auth/(.*)', {
-        path: '/api/subjects',
-        method: RequestMethod.GET,
-      })
+      .exclude(
+        '/api/auth/(.*)',
+        {
+          path: '/api/subjects',
+          method: RequestMethod.GET,
+        },
+        {
+          path: '/api/schedules/find',
+          method: RequestMethod.POST,
+        },
+      )
       .forRoutes('*');
   }
 }

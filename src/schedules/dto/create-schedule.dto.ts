@@ -3,10 +3,6 @@ import { ArrayNotEmpty, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 export class CreateScheduleDto {
   @IsNotEmpty()
   @IsString()
-  user_id: string;
-
-  @IsNotEmpty()
-  @IsString()
   subject_id: string;
 
   @ArrayNotEmpty()

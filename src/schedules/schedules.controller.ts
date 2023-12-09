@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Req } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { FindScheduleDto } from './dto/find-schedule-dto';
@@ -13,8 +13,8 @@ export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
   @Post('/create')
-  create(@Body() createScheduleDto: CreateScheduleDto) {
-    return this.schedulesService.create(createScheduleDto);
+  create(@Body() createScheduleDto: CreateScheduleDto, @Req() req) {
+    return this.schedulesService.create(createScheduleDto, req?.user?._id);
   }
 
   @Post('/find')
@@ -33,13 +33,13 @@ export class SchedulesController {
   }
 
   @Post('/my-register')
-  myRegister(@Body() myRegisterDto: MyRegisterDto) {
-    return this.schedulesService.myRegister(myRegisterDto);
+  myRegister(@Body() myRegisterDto: MyRegisterDto, @Req() req) {
+    return this.schedulesService.myRegister(myRegisterDto, req?.user?._id);
   }
 
   @Post('/accept')
-  accept(@Body() acceptSchedule: AcceptSchedule) {
-    return this.schedulesService.accept(acceptSchedule);
+  accept(@Body() acceptSchedule: AcceptSchedule, @Req() req) {
+    return this.schedulesService.accept(acceptSchedule, req?.user?._id);
   }
 
   @Get(':id')
