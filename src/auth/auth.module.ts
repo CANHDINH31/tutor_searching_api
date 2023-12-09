@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/schemas/users.schema';
 import { SchedulesModule } from 'src/schedules/schedules.module';
 import { Schedule, ScheduleSchema } from 'src/schemas/schedules.schema';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { Schedule, ScheduleSchema } from 'src/schemas/schedules.schema';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, SchedulesModule],
+  providers: [AuthService, UsersService, SchedulesModule, JwtService],
 })
 export class AuthModule {}
