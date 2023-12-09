@@ -4,6 +4,7 @@ import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,8 @@ export class AuthService {
         throw new BadRequestException({
           message: 'Email hoặc Username đã tồn tại',
         });
-      return await this.userService.create(registerDto);
+      const password = await bcrypt.hash(registerDto.password, 10);
+      return await this.userService.create({ ...registerDto, password });
     } catch (error) {
       throw error;
     }
@@ -37,7 +39,10 @@ export class AuthService {
         throw new BadRequestException({ message: 'Username không tồn tại' });
 
       // Check Password
-      const isCorrectPassword = loginDto.password === existAccount.password;
+      const isCorrectPassword = await bcrypt.compare(
+        loginDto.password,
+        existAccount.password,
+      );
       if (!isCorrectPassword)
         throw new BadRequestException({ message: 'Mật khẩu chưa chính xác' });
 

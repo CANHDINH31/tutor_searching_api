@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,7 +11,10 @@ export class SubjectsService {
   constructor(
     @InjectModel(Subject.name) private subjectModal: Model<Subject>,
   ) {}
-  async create(createSubjectDto: CreateSubjectDto) {
+  async create(createSubjectDto: CreateSubjectDto, role) {
+    if (role !== 3) {
+      throw new BadRequestException({ message: 'Username không tồn tại' });
+    }
     try {
       const data = await this.subjectModal.create({ ...createSubjectDto });
       return {

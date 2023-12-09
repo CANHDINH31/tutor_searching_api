@@ -34,10 +34,11 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     try {
       const userCreated = await this.userModal.create({ ...createUserDto });
+      const { password, ...data } = userCreated.toObject();
       return {
         status: HttpStatus.CREATED,
         message: 'Thêm mới user thành công',
-        data: userCreated,
+        data,
       };
     } catch (error) {
       throw error;

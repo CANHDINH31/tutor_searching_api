@@ -40,6 +40,12 @@ import { AuthMiddleware } from './auth/middleware/auth.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).exclude('/api/auth/(.*)').forRoutes('*');
+    consumer
+      .apply(AuthMiddleware)
+      .exclude('/api/auth/(.*)', {
+        path: '/api/subjects',
+        method: RequestMethod.GET,
+      })
+      .forRoutes('*');
   }
 }
