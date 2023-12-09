@@ -26,23 +26,22 @@ export class SubjectsController {
     return this.subjectsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.subjectsService.findOne(+id);
-  }
-
   @Patch('/soft-delete/:id')
-  softDelete(@Param('id') id: string) {
-    return this.subjectsService.softDelete(id);
+  softDelete(@Param('id') id: string, @Req() req) {
+    return this.subjectsService.softDelete(id, req?.user?.role);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
-    return this.subjectsService.update(id, updateSubjectDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateSubjectDto: UpdateSubjectDto,
+    @Req() req,
+  ) {
+    return this.subjectsService.update(id, updateSubjectDto, req?.user?.role);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subjectsService.remove(id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.subjectsService.remove(id, req?.user?.role);
   }
 }

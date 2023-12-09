@@ -4,17 +4,19 @@ import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Subject } from 'src/schemas/subjects.schema';
-import { StringDecoder } from 'string_decoder';
 
 @Injectable()
 export class SubjectsService {
   constructor(
     @InjectModel(Subject.name) private subjectModal: Model<Subject>,
   ) {}
-  async create(createSubjectDto: CreateSubjectDto, role) {
+  async create(createSubjectDto: CreateSubjectDto, role: number) {
     if (role !== 3) {
-      throw new BadRequestException({ message: 'Username không tồn tại' });
+      throw new BadRequestException({
+        message: 'Chỉ admin mới tạo được môn học',
+      });
     }
+
     try {
       const data = await this.subjectModal.create({ ...createSubjectDto });
       return {
@@ -44,7 +46,13 @@ export class SubjectsService {
     return `This action returns a #${id} subject`;
   }
 
-  async update(id: string, updateSubjectDto: UpdateSubjectDto) {
+  async update(id: string, updateSubjectDto: UpdateSubjectDto, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới được cập nhật môn học',
+      });
+    }
+
     try {
       const data = await this.subjectModal.findByIdAndUpdate(
         id,
@@ -61,15 +69,29 @@ export class SubjectsService {
     }
   }
 
-  async softDelete(id: string) {
+  async softDelete(id: string, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới được xóa môn học',
+      });
+    }
     try {
       await this.subjectModal.findByIdAndUpdate(id, { is_delete: true });
+      return {
+        status: HttpStatus.OK,
+        message: 'Xóa môn học thành công',
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới được xóa môn học',
+      });
+    }
     try {
       await this.subjectModal.findByIdAndRemove(id);
       return {
