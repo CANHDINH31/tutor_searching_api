@@ -9,6 +9,7 @@ import { MoneyDto } from './dto/money-dto';
 import { PasswordDto } from './dto/password-dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { Schedule } from 'src/schemas/schedules.schema';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +18,12 @@ export class UsersService {
     @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
   ) {}
 
-  async statis() {
+  async statis(role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới xem được danh sách người dùng',
+      });
+    }
     try {
       const count_student = await this.userModal
         .find({ role: 1 })
@@ -70,13 +76,20 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới xem được danh sách người dùng',
+      });
+    }
     try {
       return await this.userModal
         .find({ role: { $ne: 3 } })
         .select('-password')
         .sort({ createdAt: -1 });
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findOne(id: string) {
@@ -85,13 +98,15 @@ export class UsersService {
     } catch (error) {}
   }
 
-  async cashMoney(moneyDto: MoneyDto) {
+  async cashMoney(moneyDto: MoneyDto, userId: string) {
     try {
-      const data = await this.userModal.findByIdAndUpdate(
-        moneyDto._id,
-        { $inc: { money: moneyDto.money } },
-        { new: true },
-      );
+      const data = await this.userModal
+        .findByIdAndUpdate(
+          userId,
+          { $inc: { money: moneyDto.money } },
+          { new: true },
+        )
+        .select('-password');
       return {
         status: HttpStatus.CREATED,
         message: 'Nạp tiền thành công',
@@ -102,20 +117,31 @@ export class UsersService {
     }
   }
 
-  async changePassword(passwordDto: PasswordDto) {
+  async changePassword(passwordDto: PasswordDto, userId: string) {
     try {
-      const existedAccount = await this.findOne(passwordDto._id);
+      const existedAccount = await this.findOne(userId);
+
       if (!existedAccount) {
         throw new BadRequestException({
           message: 'Tài khoản của bạn không tồn tại',
         });
       }
-      if (existedAccount.password !== passwordDto.old_password)
+
+      if (
+        !(await bcrypt.compare(
+          passwordDto.old_password,
+          existedAccount.password,
+        ))
+      ) {
         throw new BadRequestException({
           message: 'Mật khẩu cũ không chính xác',
         });
-      await this.userModal.findByIdAndUpdate(passwordDto._id, {
-        password: passwordDto.new_password,
+      }
+
+      const password = await bcrypt.hash(passwordDto.new_password, 10);
+
+      await this.userModal.findByIdAndUpdate(userId, {
+        password,
       });
       return {
         status: HttpStatus.CREATED,
@@ -126,12 +152,15 @@ export class UsersService {
     }
   }
 
-  async changeInfo(updateUserDto: UpdateUserDto) {
+  async changeInfo(updateUserDto: UpdateUserDto, userId: string) {
     try {
-      const { _id, ...rest } = updateUserDto;
-      const data = await this.userModal.findByIdAndUpdate(_id, rest, {
-        new: true,
-      });
+      const data = await this.userModal.findByIdAndUpdate(
+        userId,
+        updateUserDto,
+        {
+          new: true,
+        },
+      );
       return {
         status: HttpStatus.CREATED,
         message: 'Cập nhật thông tin thành công',
@@ -142,17 +171,31 @@ export class UsersService {
     }
   }
 
-  async block(id: string) {
+  async block(id: string, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới xem được khóa người dùng',
+      });
+    }
     try {
       const user = await this.userModal.findById(id);
       user.is_block = !user.is_block;
       await user.save();
+      return {
+        status: HttpStatus.OK,
+        message: 'Thay đổi trạng thái thành công',
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  async remove(deleteUserDto: DeleteUserDto) {
+  async remove(deleteUserDto: DeleteUserDto, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới xem được xóa người dùng',
+      });
+    }
     try {
       await this.userModal.deleteMany({ _id: { $in: deleteUserDto.list_id } });
       await this.scheduleModal.deleteMany({
@@ -161,6 +204,10 @@ export class UsersService {
           { student_id: { $in: deleteUserDto.list_id } },
         ],
       });
+      return {
+        status: HttpStatus.OK,
+        message: 'Xóa người dùng thành công',
+      };
     } catch (error) {
       throw error;
     }

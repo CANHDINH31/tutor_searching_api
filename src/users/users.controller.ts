@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -16,13 +16,13 @@ export class UsersController {
   }
 
   @Get('/')
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Req() req) {
+    return this.usersService.findAll(req?.user?.role);
   }
 
   @Get('/statis')
-  statis() {
-    return this.usersService.statis();
+  statis(@Req() req) {
+    return this.usersService.statis(req?.user?.role);
   }
 
   @Get(':id')
@@ -31,27 +31,27 @@ export class UsersController {
   }
 
   @Patch('/cash')
-  cashMoney(@Body() moneyDto: MoneyDto) {
-    return this.usersService.cashMoney(moneyDto);
+  cashMoney(@Body() moneyDto: MoneyDto, @Req() req) {
+    return this.usersService.cashMoney(moneyDto, req?.user?._id);
   }
 
   @Patch('/change-password')
-  changePassword(@Body() passwordDto: PasswordDto) {
-    return this.usersService.changePassword(passwordDto);
+  changePassword(@Body() passwordDto: PasswordDto, @Req() req) {
+    return this.usersService.changePassword(passwordDto, req?.user?._id);
   }
 
   @Patch('/change-info')
-  changeInfo(@Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.changeInfo(updateUserDto);
+  changeInfo(@Body() updateUserDto: UpdateUserDto, @Req() req) {
+    return this.usersService.changeInfo(updateUserDto, req?.user?._id);
   }
 
   @Patch('/block/:id')
-  block(@Param('id') id: string) {
-    return this.usersService.block(id);
+  block(@Param('id') id: string, @Req() req) {
+    return this.usersService.block(id, req?.user?.role);
   }
 
   @Post('/delete-user')
-  remove(@Body() deleteUserDto: DeleteUserDto) {
-    return this.usersService.remove(deleteUserDto);
+  remove(@Body() deleteUserDto: DeleteUserDto, @Req() req) {
+    return this.usersService.remove(deleteUserDto, req?.user?.role);
   }
 }

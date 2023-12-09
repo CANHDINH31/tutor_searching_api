@@ -86,10 +86,10 @@ export class SchedulesService {
         time: timeArray,
       });
 
-      await this.userService.cashMoney({
-        _id: createScheduleDto.user_id,
-        money: Number(createScheduleDto.price) * -3,
-      });
+      // await this.userService.cashMoney({
+      //   _id: createScheduleDto.user_id,
+      //   money: Number(createScheduleDto.price) * -3,
+      // });
 
       return {
         status: HttpStatus.OK,
@@ -214,10 +214,10 @@ export class SchedulesService {
         { new: true },
       );
 
-      await this.userService.cashMoney({
-        _id: acceptSchedule.user_id,
-        money: Number(existSchedule.price) * -3,
-      });
+      // await this.userService.cashMoney({
+      //   _id: acceptSchedule.user_id,
+      //   money: Number(existSchedule.price) * -3,
+      // });
 
       return {
         status: HttpStatus.OK,
@@ -405,17 +405,17 @@ export class SchedulesService {
       const schedule = await this.findOne(removeScheduleDto.schedule_id);
       if (!schedule)
         throw new BadRequestException({ message: 'Không có lịch trên' });
-      if (schedule.type === 1) {
-        await this.userService.cashMoney({
-          _id: schedule.student_id,
-          money: Number(schedule.price) * 3,
-        });
-      } else {
-        await this.userService.cashMoney({
-          _id: schedule.tutor_id,
-          money: Number(schedule.price) * 3,
-        });
-      }
+      // if (schedule.type === 1) {
+      //   await this.userService.cashMoney({
+      //     _id: schedule.student_id,
+      //     money: Number(schedule.price) * 3,
+      //   });
+      // } else {
+      //   await this.userService.cashMoney({
+      //     _id: schedule.tutor_id,
+      //     money: Number(schedule.price) * 3,
+      //   });
+      // }
       await this.scheduleModal.findByIdAndRemove(removeScheduleDto.schedule_id);
       return {
         status: HttpStatus.ACCEPTED,
