@@ -35,6 +35,11 @@ export class UsersController {
     return this.usersService.cashMoney(moneyDto, req?.user?._id);
   }
 
+  @Patch('/cash-by-admin')
+  cashMoneyByAdmin(@Body() moneyDto: MoneyDto, @Req() req) {
+    return this.usersService.cashMoneyByAdmin(moneyDto, req?.user?.role);
+  }
+
   @Patch('/change-password')
   changePassword(@Body() passwordDto: PasswordDto, @Req() req) {
     return this.usersService.changePassword(passwordDto, req?.user?._id);
@@ -43,6 +48,11 @@ export class UsersController {
   @Patch('/change-info')
   changeInfo(@Body() updateUserDto: UpdateUserDto, @Req() req) {
     return this.usersService.changeInfo(updateUserDto, req?.user?._id);
+  }
+
+  @Patch('/change-info-by-admin')
+  changeInfoByAdmin(@Body() updateUserDto: UpdateUserDto, @Req() req) {
+    return this.usersService.changeInfoByAdmin(updateUserDto, req?.user?.role);
   }
 
   @Patch('/block/:id')

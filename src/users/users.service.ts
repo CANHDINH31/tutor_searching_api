@@ -117,6 +117,30 @@ export class UsersService {
     }
   }
 
+  async cashMoneyByAdmin(moneyDto: MoneyDto, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Không có quyền',
+      });
+    }
+    try {
+      const data = await this.userModal
+        .findByIdAndUpdate(
+          moneyDto._id,
+          { $inc: { money: moneyDto.money } },
+          { new: true },
+        )
+        .select('-password');
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Nạp tiền thành công',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async changePassword(passwordDto: PasswordDto, userId: string) {
     try {
       const existedAccount = await this.findOne(userId);
@@ -161,6 +185,27 @@ export class UsersService {
           new: true,
         },
       );
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Cập nhật thông tin thành công',
+        data,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async changeInfoByAdmin(updateUserDto: UpdateUserDto, role: number) {
+    if (role !== 3) {
+      throw new BadRequestException({
+        message: 'Chỉ admin mới xem được cập nhật người dùng',
+      });
+    }
+    try {
+      const { _id, ...rest } = updateUserDto;
+      const data = await this.userModal.findByIdAndUpdate(_id, rest, {
+        new: true,
+      });
       return {
         status: HttpStatus.CREATED,
         message: 'Cập nhật thông tin thành công',
