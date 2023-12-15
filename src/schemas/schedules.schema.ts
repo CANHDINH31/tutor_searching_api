@@ -21,6 +21,8 @@ export class Schedule {
   hour: string[];
   @Prop()
   num_sessions: number;
+  @Prop()
+  address: string;
   @Prop({ default: false })
   is_accepted: boolean;
   // 1.Student   2.Tutor
