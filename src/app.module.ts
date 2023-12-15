@@ -16,6 +16,7 @@ import { UsersModule } from './users/users.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { AuthMiddleware } from './auth/middleware/auth.middleware';
+import { MailerModule } from '@nest-modules/mailer';
 
 @Module({
   imports: [
@@ -28,6 +29,22 @@ import { AuthMiddleware } from './auth/middleware/auth.middleware';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
+    }),
+    MailerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          secure: false,
+          auth: {
+            user: 'dinhphamcanh@gmail.com',
+            pass: 'tklv xmeh kynt yxir',
+          },
+        },
+        defaults: {
+          from: `"Tranh tường miền Bắc" <${configService.get('MAIL_FROM')}>`,
+        },
+      }),
     }),
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,

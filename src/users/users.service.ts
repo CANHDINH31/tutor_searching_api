@@ -10,12 +10,15 @@ import { PasswordDto } from './dto/password-dto';
 import { DeleteUserDto } from './dto/delete-user.dto';
 import { Schedule } from 'src/schemas/schedules.schema';
 import * as bcrypt from 'bcrypt';
+import { MailerService } from '@nest-modules/mailer';
+import * as moment from 'moment';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModal: Model<User>,
     @InjectModel(Schedule.name) private scheduleModal: Model<Schedule>,
+    private mailerService: MailerService,
   ) {}
 
   async statis(role: number) {
@@ -167,6 +170,19 @@ export class UsersService {
       await this.userModal.findByIdAndUpdate(userId, {
         password,
       });
+
+      const currentDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
+      await this.mailerService.sendMail({
+        from: 'dinhphamcanh@gmail.com',
+        to: existedAccount?.email,
+        subject: 'Thông báo thay đổi mật khẩu',
+        html: `
+      <h1>Xác nhận thay đổi mật khẩu tài khoản ${existedAccount.username}</h1>
+      <p>Vào thời gian ${currentDate} tài khoản của bạn trên hệ thống đã bị thay đổi mật khẩu. Nếu đó không phải là bạn xin hãy liên hệ ngay với đội ngũ quản trị viên để được hỗ trợ</p>
+      `,
+      });
+
       return {
         status: HttpStatus.CREATED,
         message: 'Thay đổi mật khẩu thành công',
